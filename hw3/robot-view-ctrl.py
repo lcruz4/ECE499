@@ -80,7 +80,7 @@ while True:
     if status == ach.ACH_OK or status == ach.ACH_MISSED_FRAME or status == ach.ACH_STALE_FRAMES:
         vid2 = cv2.resize(vid,(nx,ny))
         img = cv2.cvtColor(vid2,cv2.COLOR_BGR2RGB)
-        #cv2.imshow("wctrl", img)
+        cv2.imshow("wctrl", img)
         cv2.waitKey(10)
     else:
         raise ach.AchException( v.result_string(status) )
@@ -97,25 +97,21 @@ while True:
 #--------[ Do not edit above ]------------------------
 #-----------------------------------------------------
 
-    Rimg, Gimg, Bimg = cv2.split(img)
-    ret,Gthresh = cv2.threshold(Gimg, 100, 0x01, cv2.THRESH_BINARY)
-    ret,Rthresh = cv2.threshold(Rimg, 100, 0x01, cv2.THRESH_BINARY_INV)
-    mask = Gthresh & Rthresh
-    gCount = 0
-    xTot = 0
-    for i in range(mask[200].size):
-      xTot += i*mask[200][i]
-      gCount += 1*mask[200][i]
-      i += 1
-    if(gCount):
-      img[200][xTot/gCount]= [0,0,0xFF]
-      img[200][xTot/gCount+1]= [0,0,0xFF]
-      img[200][xTot/gCount-1]= [0,0,0xFF]
-      img[201][xTot/gCount]= [0,0,0xFF]
-      img[199][xTot/gCount]= [0,0,0xFF]
-    cv2.imshow("wctrl", img)
+    BinImg = np.zeros((ny,nx,3), np.uint8)
+    [Rimg, Gimg, Bimg] = np.split(img, 3,2)
+    print(Rimg.shape)
+    ret,Gthresh = cv2.threshold(Gimg, 200, 1, cv2.THRESH_BINARY)
+    Rimg = np.squeeze(Rimg)
+    Gimg = np.squeeze(Gimg)
+    Bimg = np.squeeze(Bimg)
+    Rimg = np.logical_and(Rimg,Gthresh)
+    Gimg = np.logical_and(Gimg,Gthresh)
+    Bimg = np.logical_and(Bimg,Gthresh)
+    BinImg = cv2.merge((Rimg, Gimg, Bimg))
+    print(BinImg.shape)
+    #cv2.imshow("binimg", BinImg)
     time.sleep(0.1)    
 
 #-----------------------------------------------------
 #--------[ Do not edit below ]------------------------
-##-----------------------------------------------------
+#-----------------------------------------------------
