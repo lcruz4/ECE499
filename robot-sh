@@ -42,7 +42,6 @@ MakeAch()
 Run()
 {
      MakeAch
-     ./controller-c
 }
 
 KillRemote()
