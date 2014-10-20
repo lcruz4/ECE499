@@ -1,5 +1,0 @@
-/home/student/Documents/ECE499/d_diff_drive_robot/build/CMakeFiles/camera_dump.dir
-/home/student/Documents/ECE499/d_diff_drive_robot/build/CMakeFiles/camera_move.dir
-/home/student/Documents/ECE499/d_diff_drive_robot/build/CMakeFiles/model_diff_drive.dir
-/home/student/Documents/ECE499/d_diff_drive_robot/build/CMakeFiles/system_gui.dir
-/home/student/Documents/ECE499/d_diff_drive_robot/build/CMakeFiles/video_listener.dir
