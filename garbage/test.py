@@ -34,7 +34,7 @@ while(not(arm > hyp-err and arm < hyp+err)):
   ref.ref[ha.RSR] = pi/9
 #  ref.ref[ha.LSP] = pi/2
 #  ref.ref[ha.LSY] = pi/2
-  ref.ref[ha.LSR] = pi/2-pi/8
+  ref.ref[ha.LSR] = pi/2-pi/9
   print('thetas')
   print(reb,rsy)
   print('pos')
