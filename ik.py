@@ -32,9 +32,9 @@ delta = .1
 shoulder = -.2145
 forearm = -.18159
 aftarm = -.17914
-reb = 0
 rsr = 0
-rsy = 0#-pi/2
+reb = 0
+rsp = 0
 xyd = [-.39609,-.17914,2]
 xdone = False
 ydone = False
@@ -42,13 +42,13 @@ ref.ref[ha.RSY] = -pi/2
 x=0
 while(1):
   i = 0
-  xyz0 = fk(aftarm,forearm,-reb,-rsr,-rsy)
+  xyz0 = fk(aftarm,forearm,-rsr,-reb,-rsp)
   xyz0[0] += shoulder
-  xyz1 = fk(aftarm,forearm,-(reb+delta),-rsr,-rsy)
+  xyz1 = fk(aftarm,forearm,-(rsr+delta),-reb,-rsp)
   xyz1[0] += shoulder
-  xyz2 = fk(aftarm,forearm,-reb,-(rsr+delta),-rsy)
+  xyz2 = fk(aftarm,forearm,-rsr,-(reb+delta),-rsp)
   xyz2[0] += shoulder
-  xyz3 = fk(aftarm,forearm,-reb,-rsr,-(rsy+delta))
+  xyz3 = fk(aftarm,forearm,-rsr,-reb,-(rsp+delta))
   xyz3[0] += shoulder
   J = jacobian(xyz0,xyz1,xyz2,xyz3,delta)
   de = np.matrix([[xyz1[0]-xyz0[0],xyz1[1]-xyz0[1],xyz1[2]-xyz0[2]],
@@ -62,18 +62,19 @@ while(1):
     i=1
   else:
     i=2
-  reb += dtheta[0,i]
-  rsr += dtheta[1,i]
-  rsy += dtheta[2,i]
+  rsr += dtheta[0,i]
+  reb += dtheta[1,i]
+  rsp += dtheta[2,i]
   print xyz0
-  print [reb,rsr,rsy]
+  print [rsr,reb,rsp]
   print ()
-  ref.ref[ha.REB] = reb
-  ref.ref[ha.RSR] = rsr-pi/9
+  ref.ref[ha.RSY] = -rsr+pi/9
+  ref.ref[ha.REB] = -reb
+  ref.ref[ha.RSP] = -rsp
   r.put(ref)
   [statuss, framesizes] = s.get(state, wait=False, last=False)
   t=state.time
-  while((state.time-t)<0.001):
+  while((state.time-t)<.2):
     [statuss, framesizes] = s.get(state, wait=False, last=False) 
   x += 1
 r.close()
