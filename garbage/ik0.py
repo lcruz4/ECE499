@@ -5,14 +5,21 @@ import time
 import numpy as np
 from math import *
 from ctypes import *
-from matscript0 import *
+from matscript import *
 
-def jacobian(xy0,xy1,xy2,delta):
-  j00 = (xy1[0] - xy0[0])/delta
-  j01 = (xy1[1] - xy0[1])/delta
-  j10 = (xy2[0] - xy0[0])/delta
-  j11 = (xy2[1] - xy0[1])/delta
-  return np.matrix([[j00,j01],[j10,j11]])
+def jacobian(xyz0,xyz1,xyz2,xyz3,delta):
+  j00 = (xyz1[0] - xyz0[0])/delta
+  j01 = (xyz1[1] - xyz0[1])/delta
+  j02 = (xyz1[2] - xyz0[2])/delta
+  j10 = (xyz2[0] - xyz0[0])/delta
+  j11 = (xyz2[1] - xyz0[1])/delta
+  j12 = (xyz2[2] - xyz0[2])/delta
+  j20 = (xyz3[0] - xyz0[0])/delta
+  j21 = (xyz3[1] - xyz0[1])/delta
+  j22 = (xyz3[2] - xyz0[2])/delta
+  return np.matrix([[j00,j01,j02],
+                    [j10,j11,j12],
+                    [j20,j21,j22]])
 
 s = ach.Channel(ha.HUBO_CHAN_STATE_NAME)
 r = ach.Channel(ha.HUBO_CHAN_REF_NAME)
@@ -21,53 +28,60 @@ state = ha.HUBO_STATE()
 ref = ha.HUBO_REF()
 
 err = 0.01
-delta = -.01
+delta = .1
 shoulder = -.2145
 forearm = -.18159
 aftarm = -.17914
-reb = 0
 rsr = 0
-rsy = -pi/2
-xyd = [-.39609,-.17914]
+reb = 0
+rsp = 0
+xyzd = [-.25,-.2,.2]
 xdone = False
 ydone = False
 ref.ref[ha.RSY] = -pi/2
-
-while((not xdone) or (not ydone)):
-  delta1 = 0
-  delta2 = 0
-  xory = 0
-  xy0 = fk(aftarm,forearm,0,-reb,-rsr,0)
-  xy0[0] += shoulder
-  xy1 = fk(aftarm,forearm,0,-reb-delta,-rsr,0)
-  xy1[0] += shoulder
-  xy2 = fk(aftarm,forearm,0,-reb,-rsr-delta,0)
-  xy2[0] += shoulder
-  J = jacobian(xy0,xy1,xy2,delta)
-  print(J)
-  if(xy0[0] <= xyd[0]+err and xy0[0] >= xyd[0]-err):
-    xdone = True
-  if(xy0[1] <= xyd[1]+err and xy0[1] >= xyd[1]-err):
-    ydone = True
-  if(abs(xy0[0]-xyd[0])>abs(xy0[1]-xyd[1])):
-    delta1 = J[0,0]
-    delta2 = J[1,0]
-    xory = 0
+x=0
+while(1):
+  i = 0
+  xyz0 = fk(aftarm,forearm,-rsr,-reb,-rsp)
+  xyz0[0] += shoulder
+  xyz1 = fk(aftarm,forearm,-(rsr+delta),-reb,-rsp)
+  xyz1[0] += shoulder
+  xyz2 = fk(aftarm,forearm,-rsr,-(reb+delta),-rsp)
+  xyz2[0] += shoulder
+  xyz3 = fk(aftarm,forearm,-rsr,-reb,-(rsp+delta))
+  xyz3[0] += shoulder
+  J = jacobian(xyzd,xyz1,xyz2,xyz3,delta)
+  de = np.matrix([[xyz1[0]-xyzd[0],xyz1[1]-xyzd[1],xyz1[2]-xyzd[2]],
+                  [xyz2[0]-xyzd[0],xyz2[1]-xyzd[1],xyz2[2]-xyzd[2]],
+                  [xyz3[0]-xyzd[0],xyz3[1]-xyzd[1],xyz3[2]-xyzd[2]]])
+  dtheta = J.getI()*de
+  xyz=max(abs(xyz0[0]-xyzd[0]),abs(xyz0[1]-xyzd[1]),abs(xyz0[2]-xyzd[2]))
+  print(dtheta)
+  if(xyz == xyz0[0]-xyzd[0]):
+    i=0
+  elif(xyz == xyz0[1]-xyzd[1]):
+    i=1
   else:
-    delta1 = J[0,1]
-    delta2 = J[1,1]
-    xory = 1
-  if(xdone and ydone):
-    print("DONE")
-  else:
-    ref.ref[ha.REB] = -reb
-    ref.ref[ha.RSR] = rsr-pi/9
-    r.put(ref)
-    [statuss, framesizes] = s.get(state, wait=False, last=False)
-    t=state.time
-    while((state.time-t)<0.01):
-      [statuss, framesizes] = s.get(state, wait=False, last=False)
-
+    i=2
+  print(dtheta[:,i])
+  rsr += dtheta[0,i]
+  reb += dtheta[1,i]
+  rsp += dtheta[2,i]
+  print xyz0
+  print [rsr,reb,rsp]
+  print ()
+  ref.ref[ha.RSR] = -rsr+pi/12
+  ref.ref[ha.REB] = -reb+pi/18
+  ref.ref[ha.RSP] = -rsp+pi/18
+  r.put(ref)
+  #[statuss, framesizes] = s.get(state, wait=False, last=False)
+  #t=state.time
+  #while((state.time-t)<.2):
+  #  [statuss, framesizes] = s.get(state, wait=False, last=False) 
+  try:
+    input("Press enter to continue")
+  except SyntaxError:
+    pass
 r.close()
 s.close()
 
