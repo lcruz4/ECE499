@@ -13,7 +13,7 @@ import AngVelChan as angle
 
 
 capture = cv2.VideoCapture()
-capture.open(0)
+capture.open(1)
 
 
 cv.NamedWindow("frame", cv.CV_WINDOW_AUTOSIZE)
@@ -38,7 +38,10 @@ def GetColorCenter(image,color):
 	hsv = cv2.cvtColor(image,cv2.COLOR_BGR2HSV)
 # define range of blue color in HSV
 	upper=lower=0
-	if color=='blue':
+	if color == 'yellow':
+		lower = np.array([10,80,160],np.uint8)
+		upper = np.array([40,255,200],np.uint8)
+	elif color=='blue':
 		lower = np.array([110,50,50],np.uint8)
 		upper = np.array([130,255,255],np.uint8)
 	elif color=='red':
@@ -59,7 +62,7 @@ def GetColorCenter(image,color):
 		print ("exception")
 	cv2.imshow('thresh2',thresh2)
 	return [cx,cy]
-COLOR="red"
+COLOR="yellow"
 FrameAmount=0
 while True:
 	img = np.zeros((newx,newy,3), np.uint8)
@@ -73,10 +76,11 @@ while True:
 	frame = cv2.blur(img,(3,3))
 	
 	loc=GetColorCenter(frame,COLOR)
+	print loc
 	x=float(loc[0])
-	x=float(x-newx)/nx
+	x=float(x-newx/2)/newx
 	y=float(loc[1])
-	y=(y-newy)/ny
+	y=(y-newy/2)/newy
         print(x,y)
 	angvel.X=x
 	angvel.Y=y

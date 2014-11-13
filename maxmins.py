@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 capture = cv2.VideoCapture()
-capture.open(0)
+capture.open(1)
 
 newx = 320
 newy = 240
