@@ -13,7 +13,7 @@ import AngVelChan as angle
 
 
 capture = cv2.VideoCapture()
-capture.open(1)
+capture.open(0)
 
 
 cv.NamedWindow("frame", cv.CV_WINDOW_AUTOSIZE)
@@ -42,8 +42,8 @@ def GetColorCenter(image,color):
 		lower = np.array([10,80,160],np.uint8)
 		upper = np.array([40,255,200],np.uint8)
 	elif color=='blue':
-		lower = np.array([110,50,50],np.uint8)
-		upper = np.array([130,255,255],np.uint8)
+		lower = np.array([90,62,250],np.uint8)
+		upper = np.array([120,255,255],np.uint8)
 	elif color=='red':
 		lower = np.array([0,50,50],np.uint8)
 		upper = np.array([50,255,255],np.uint8)
@@ -58,11 +58,11 @@ def GetColorCenter(image,color):
 		cx,cy = int(M['m10']/M['m00']), int(M['m01']/M['m00'])
 		cv2.circle(img,(cx,cy),5,(255,0,255),-1)
 	except:
-		cx=cy=-1
-		print ("exception")
+		cx=newx
+		cy=newy
 	cv2.imshow('thresh2',thresh2)
 	return [cx,cy]
-COLOR="yellow"
+COLOR="blue"
 FrameAmount=0
 while True:
 	img = np.zeros((newx,newy,3), np.uint8)
@@ -74,14 +74,16 @@ while True:
 	#img = cv2.cvtColor(vid2,cv2.COLOR_BGR2RGB)
 
 	frame = cv2.blur(img,(3,3))
-	
+	print frame.shape
 	loc=GetColorCenter(frame,COLOR)
 	print loc
 	x=float(loc[0])
-	x=float(x-newx)/nx
+	print x
+	x=float(x-newx)/newx
+	print x
 	y=float(loc[1])
-	y=(y-newy)/ny
-        print(x,y)
+	y=(newy-y)/newy
+    	print(x,y)
 	angvel.X=x
 	angvel.Y=y
 	a.put(angvel)
@@ -92,4 +94,3 @@ while True:
 
 	cv2.waitKey(10)
 
-	time.sleep(0.1)

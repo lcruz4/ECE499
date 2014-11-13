@@ -79,36 +79,27 @@ def main(settings):
       print "...Done"
     
     for actuator in myActuators:
-        actuator.moving_speed = 50
+        actuator.moving_speed = 200
         actuator.synchronized = True
         actuator.torque_enable = True
         actuator.torque_limit = 800
         actuator.max_torque = 800
     
     # Randomly vary servo position within a small range
-    print myActuators
-    print "Hubo-Ach neck server active"
-#    print "Servo \tPosition"
+
     enc = 0.0;
-    angleToMove = -2;
-    cmdY = angleToMove
-    cmdX = angleToMove
+    angleToMove = -0.1
+    cmdY = .8
+    cmdX = 0
     while True:
         # get most recent new angle or wait until we have a new angle available
         [status, framesize] = a.get(ang, wait=True, last=True)
 	# use error from angle channel to submit new vertical command
-        if (ang.Y < 0) :
-            # move camera center up
-            cmdY= (-ang.Y) * angleToMove
-        else:
-            # move camera center down
-            cmdY =(ang.Y) * (-angleToMove)
-        if (ang.X < 0) :
-            # move camera center left
-            cmdX= (ang.X) * (angleToMove)
-        else:
-            # move camera center right
-            cmdX= (ang.X) * (angleToMove)
+        angY = ang.Y
+        angX = ang.X
+        cmdY+= (angY) * angleToMove
+        # move camera center right
+        cmdX+= (angX) * (angleToMove)
    ############# Get the current feed-forward (state) 
         for actuator in myActuators:
             if ( actuator.id == 2):
@@ -116,7 +107,12 @@ def main(settings):
             elif (actuator.id == 3):
                 actuator.goal_position = rad2dyn(cmdX)
         net.synchronize()
-
+        
+        for i in range(100):
+            angY += ang.Y
+            angX += ang.X
+        angY/100
+        angX/100
 
         for actuator in myActuators:
             actuator.read_all()
@@ -125,7 +121,7 @@ def main(settings):
                 enc = dyn2rad(actuator.current_position)
 #	print encoder.enc[ha.NKY], " : ", encoder.enc[ha.NK1], " : ", encoder.enc[ha.NK2]
         print 'cmdY = ', cmdY, '  enc = ', enc
-        time.sleep(.1)
+
 
 def validateInput(userInput, rangeMin, rangeMax):
     '''
